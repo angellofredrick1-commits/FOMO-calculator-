@@ -156,33 +156,6 @@ async function fetchPrices(symbol, startDate) {
 }
 
 
-async function fetchAllStocks() {
-  if (!API_KEY) return null;
-  try {
-    const res = await fetch(API_BASE + "/api/v1/market/prices", {
-      headers: { "x-api-key": API_KEY, "Accept": "application/json" }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    // Filter out zero-price or stale stocks, map to our shape
-    return data
-      .filter(function(s) { return s.price && s.price > 0; })
-      .map(function(s) {
-        return {
-          symbol: s.symbol,
-          name: s.name || s.symbol,
-          sector: "DSE",
-          price: s.price,
-          change: s.change,
-          percentageChange: s.percentageChange,
-        };
-      });
-  } catch(e) {
-    console.warn("fetchAllStocks failed:", e.message);
-    return null;
-  }
-}
-
 // ── Price service ─────────────────────────────────────────────
 function simulatePrices(symbol, startDate) {
   // Base prices anchored to real DSE prices from sokoview API
