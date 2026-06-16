@@ -6,8 +6,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 // Auth: x-api-key header | scope: market:read
 // NOTE: Only today's price is available via API. Historical path is
 //       simulated; live price replaces the final point so returns are real.
-const API_BASE = "https://api.sokoview.co.tz";
-const API_KEY  = "skv_live_ef0939a5eb133b5ec5620df82b5be6caa48c49723211be72";
+// Sokoview API — today's live prices (current price only)
+const API_BASE   = "https://api.sokoview.co.tz";
+const API_KEY    = "skv_live_ef0939a5eb133b5ec5620df82b5be6caa48c49723211be72";
+
+// Mansa Markets — real DSE historical OHLCV data
+const MANSA_BASE = "https://www.mansaapi.com";
+const MANSA_KEY  = "mansa_live_sk_q965e9cwd6wme25m";
 
 const DOT  = " \u00B7 ";
 const ARR  = " \u2192 ";
@@ -46,6 +51,111 @@ async function fetchCompanies() {
 
 // Fetch all stocks with live prices — used to populate the stock selector
 // Falls back to DSE_STOCKS if API unavailable
+async function fetchAllStocks() {
+  if (!API_KEY) return null;
+  try {
+    const res = await fetch(API_BASE + "/api/v1/market/prices", {
+      headers: { "x-api-key": API_KEY, "Accept": "application/json" }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // Filter out zero-price or stale stocks, map to our shape
+    return data
+      .filter(function(s) { return s.price && s.price > 0; })
+      .map(function(s) {
+        return {
+          symbol: s.symbol,
+          name: s.name || s.symbol,
+          sector: "DSE",
+          price: s.price,
+          change: s.change,
+          percentageChange: s.percentageChange,
+        };
+      });
+  } catch(e) {
+    console.warn("fetchAllStocks failed:", e.message);
+    return null;
+  }
+}
+
+// ── Price service ─────────────────────────────────────────────
+// Fetch real historical prices from Mansa Markets (mansaapi.com)
+// Returns [{ date, price, open, high, low, volume }] oldest first
+async function fetchHistoricalPrices(symbol, startDate) {
+  var url = MANSA_BASE + "/api/v1/markets/exchanges/DSE/stocks/" + symbol.toUpperCase() + "/history";
+  var res = await fetch(url + "?from=" + startDate, {
+    headers: { "Authorization": "Bearer " + MANSA_KEY, "Accept": "application/json" }
+  });
+  if (!res.ok) throw new Error("Mansa " + res.status + " for " + symbol);
+  var json = await res.json();
+  if (!json.success || !Array.isArray(json.history)) throw new Error("Bad response from Mansa");
+  return json.history.map(function(h) {
+    return { date: h.date, price: h.close };
+  });
+}
+
+// Fallback simulation (used if Mansa call fails or returns no data)
+function simulatePrices(symbol, startDate) {
+  var cfgs = {
+    CRDB:{base:280,v:.015,t:.0003}, NMB:{base:3800,v:.012,t:.0004},
+    SWIS:{base:2400,v:.018,t:.0002}, TOL:{base:1200,v:.02,t:.0005},
+    TBL:{base:8800,v:.014,t:.0003}, TCC:{base:11000,v:.013,t:.0002},
+    TPCC:{base:6200,v:.016,t:.0004}, DCB:{base:420,v:.022,t:.0006},
+    KCB:{base:1500,v:.015,t:.0003}, JATU:{base:240,v:.028,t:.0007},
+    VODA:{base:660,v:.015,t:.0003}, NMB:{base:13000,v:.010,t:.0004},
+  };
+  var cfg = cfgs[symbol] || { base:500, v:.015, t:.0003 };
+  var start = new Date(startDate), end = new Date();
+  var days  = Math.ceil((end - start) / 86400000);
+  var seed = symbol.charCodeAt(0) * 1000 + symbol.charCodeAt(1);
+  var rand = function() { seed=(seed*1664525+1013904223)&0xffffffff; return(seed>>>0)/0xffffffff; };
+  var price = cfg.base;
+  var out = [];
+  for (var i = 0; i <= days; i++) {
+    var d = new Date(start.getTime() + i * 86400000);
+    if (d.getDay() === 0 || d.getDay() === 6) continue;
+    price = Math.max(price * (1 + (rand() - .48) * cfg.v + cfg.t), cfg.base * .3);
+    out.push({ date: d.toISOString().split("T")[0], price: Math.round(price) });
+  }
+  return out;
+}
+
+// Main price fetcher:
+// 1. Try Mansa Markets for real historical data
+// 2. If Mansa fails, fall back to simulation
+// 3. Always snap final price to today's live Sokoview price if available
+async function fetchPrices(symbol, startDate) {
+  var prices;
+  var usedSimulation = false;
+
+  try {
+    prices = await fetchHistoricalPrices(symbol, startDate);
+    if (!prices || prices.length < 5) throw new Error("Too few data points from Mansa");
+    console.log("Mansa: got " + prices.length + " real price points for " + symbol);
+  } catch(e) {
+    console.warn("Mansa failed, using simulation:", e.message);
+    prices = simulatePrices(symbol, startDate);
+    usedSimulation = true;
+  }
+
+  // Snap last point to today's real price from Sokoview API
+  if (API_KEY) {
+    try {
+      var live = await fetchLivePrice(symbol);
+      if (live && live.price) {
+        var today = new Date().toISOString().split("T")[0];
+        prices[prices.length - 1] = { date: today, price: Math.round(live.price) };
+        console.log("Sokoview: snapped today price to TZS " + live.price + " for " + symbol);
+      }
+    } catch(e) {
+      console.warn("Sokoview live price failed:", e.message);
+    }
+  }
+
+  return prices;
+}
+
+
 async function fetchAllStocks() {
   if (!API_KEY) return null;
   try {
