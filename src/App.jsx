@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // Sokoview API config
@@ -67,17 +66,28 @@ async function fetchAllStocks() {
 }
 
 // ── Price service ─────────────────────────────────────────────
-// No third-party history source — simulation only
-// Prices are estimated, anchored to real DSE close from Sokoview API
+// Fetch real historical prices from DSE official API via Netlify proxy
+// Falls back to simulation if DSE has no data for this symbol/date
 async function fetchHistoricalPrices(symbol, startDate) {
-  return simulatePrices(symbol, startDate);
+  try {
+    var res = await fetch("/.netlify/functions/history?symbol=" + symbol + "&from=" + startDate);
+    if (!res.ok) throw new Error("History proxy " + res.status);
+    var data = await res.json();
+    if (!Array.isArray(data) || data.length < 5) throw new Error("Too few points from DSE");
+    console.log("DSE API: got " + data.length + " real price points for " + symbol);
+    return data;
+  } catch(e) {
+    console.warn("DSE history unavailable for " + symbol + ", using simulation:", e.message);
+    return simulatePrices(symbol, startDate);
+  }
 }
 
 
 // Real annual price anchors sourced from DSE records & market data (TZS, approx Jan 1 each year)
 var PRICE_HISTORY = {
   // Real prices sourced from DSE records, African Markets, analyst reports
-  CRDB:  {"2015":85,"2016":90,"2017":95,"2018":100,"2019":110,"2020":60,"2021":220,"2022":340,"2023":490,"2024":790,"2025":2500,"2026":2580},
+  // Real prices from DSE official API (dse.co.tz)
+  CRDB:  {"2015":85,"2016":90,"2017":95,"2018":100,"2019":110,"2020":60,"2021":295,"2022":280,"2023":380,"2024":460,"2025":670,"2026":2570},
   NMB:   {"2015":1900,"2016":2000,"2017":2100,"2018":2200,"2019":2300,"2020":2340,"2021":2600,"2022":3000,"2023":3800,"2024":5200,"2025":8000,"2026":15380},
   TBL:   {"2015":6000,"2016":6500,"2017":7000,"2018":7200,"2019":7500,"2020":7800,"2021":8000,"2022":8200,"2023":8500,"2024":9000,"2025":9500,"2026":9960},
   TCC:   {"2015":6000,"2016":6500,"2017":7000,"2018":8000,"2019":9000,"2020":9500,"2021":10000,"2022":10500,"2023":11000,"2024":11500,"2025":12000,"2026":12500},
