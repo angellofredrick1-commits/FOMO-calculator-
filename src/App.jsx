@@ -87,7 +87,7 @@ async function fetchHistoricalPrices(symbol, startDate) {
 var PRICE_HISTORY = {
   // Real prices sourced from DSE records, African Markets, analyst reports
   // Real prices from DSE official API (dse.co.tz)
-  CRDB:  {"2015":85,"2016":90,"2017":95,"2018":100,"2019":110,"2020":60,"2021":295,"2022":280,"2023":380,"2024":460,"2025":670,"2026":2570},
+  CRDB:  {"2015":85,"2016":90,"2017":95,"2018":100,"2019":110,"2020":60,"2021":166,"2022":280,"2023":380,"2024":460,"2025":670,"2026":2570},
   NMB:   {"2015":1900,"2016":2000,"2017":2100,"2018":2200,"2019":2300,"2020":2340,"2021":2600,"2022":3000,"2023":3800,"2024":5200,"2025":8000,"2026":15380},
   TBL:   {"2015":6000,"2016":6500,"2017":7000,"2018":7200,"2019":7500,"2020":7800,"2021":8000,"2022":8200,"2023":8500,"2024":9000,"2025":9500,"2026":9960},
   TCC:   {"2015":6000,"2016":6500,"2017":7000,"2018":8000,"2019":9000,"2020":9500,"2021":10000,"2022":10500,"2023":11000,"2024":11500,"2025":12000,"2026":12500},
@@ -918,7 +918,7 @@ function StoryPlayer(props) {
 // ── Setup screen ──────────────────────────────────────────────
 export default function App() {
   var [ticker,     setTicker]     = useState("CRDB");
-  var [startDate,  setStartDate]  = useState("2020-01-01");
+  var [startDate,  setStartDate]  = useState("2021-06-01");
   var [amount,     setAmount]     = useState(1000000);
   var [comparison, setComparison] = useState(COMPARISONS[0]);
   var [searchOpen, setSearchOpen] = useState(false);
@@ -1106,7 +1106,7 @@ export default function App() {
             <div>
               <div style={{fontSize:11,fontWeight:600,color:G.body,marginBottom:6}}>{"2 \u00B7 Date"}</div>
               <input type="date" value={startDate}
-                min="2010-01-01"
+                min="2021-06-01"
                 max={new Date(Date.now()-86400000).toISOString().split("T")[0]}
                 onChange={function(e){setStartDate(e.target.value);}}
                 style={{width:"100%",boxSizing:"border-box",
