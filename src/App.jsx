@@ -19,16 +19,9 @@ const HELL = "\u2026";
 // Fetch today's live price for one symbol.
 // Returns { symbol, name, price, change, percentageChange, volume, updatedAt }
 async function fetchLivePrice(symbol) {
-  if (!API_KEY) return null;
   try {
-    const res = await fetch(API_BASE + "/api/v1/market/prices/" + symbol, {
-      headers: { "x-api-key": API_KEY, "Accept": "application/json" }
-    });
-    if (res.status === 429) {
-      var retry = res.headers.get("Retry-After") || "60";
-      throw new Error("Rate limited. Retry in " + retry + "s.");
-    }
-    if (!res.ok) throw new Error("API " + res.status + " for " + symbol);
+    var res = await fetch("/.netlify/functions/prices?symbol=" + symbol.toUpperCase());
+    if (!res.ok) throw new Error("Prices proxy error " + res.status);
     return res.json();
   } catch(e) {
     console.warn("fetchLivePrice failed:", e.message);
@@ -50,14 +43,10 @@ async function fetchCompanies() {
 // Fetch all stocks with live prices — used to populate the stock selector
 // Falls back to DSE_STOCKS if API unavailable
 async function fetchAllStocks() {
-  if (!API_KEY) return null;
   try {
-    const res = await fetch(API_BASE + "/api/v1/market/prices", {
-      headers: { "x-api-key": API_KEY, "Accept": "application/json" }
-    });
+    var res = await fetch("/.netlify/functions/prices");
     if (!res.ok) return null;
-    const data = await res.json();
-    // Filter out zero-price or stale stocks, map to our shape
+    var data = await res.json();
     return data
       .filter(function(s) { return s.price && s.price > 0; })
       .map(function(s) {
