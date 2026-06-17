@@ -10,7 +10,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const API_BASE   = "https://api.sokoview.co.tz";
 const API_KEY    = "skv_live_ef0939a5eb133b5ec5620df82b5be6caa48c49723211be72";
 
-// Mansa Markets — real DSE historical OHLCV data
+// Historical prices: simulated, anchored to Sokoview live price
 
 const DOT  = " \u00B7 ";
 const ARR  = " \u2192 ";
@@ -77,19 +77,13 @@ async function fetchAllStocks() {
 }
 
 // ── Price service ─────────────────────────────────────────────
-// Fetch real historical prices via Netlify proxy function
-// The function calls Mansa Markets server-side (avoids CORS)
+// No third-party history source — simulation only
+// Prices are estimated, anchored to real DSE close from Sokoview API
 async function fetchHistoricalPrices(symbol, startDate) {
-  var url = "/.netlify/functions/history?symbol=" + symbol.toUpperCase() + "&from=" + startDate;
-  var res = await fetch(url);
-  if (!res.ok) throw new Error("History proxy error " + res.status + " for " + symbol);
-  var data = await res.json();
-  if (!Array.isArray(data)) throw new Error("Bad response from history proxy");
-  if (data.length < 5) throw new Error("Too few data points for " + symbol);
-  return data; // already [{ date, price }]
+  return simulatePrices(symbol, startDate);
 }
 
-// Fallback simulation (used if Mansa call fails or returns no data)
+// Simulation — realistic price path anchored to real DSE base prices
 function simulatePrices(symbol, startDate) {
   var cfgs = {
     CRDB:{base:280,v:.015,t:.0003}, NMB:{base:3800,v:.012,t:.0004},
@@ -116,34 +110,22 @@ function simulatePrices(symbol, startDate) {
 }
 
 // Main price fetcher:
-// 1. Try Mansa Markets for real historical data
-// 2. If Mansa fails, fall back to simulation
-// 3. Always snap final price to today's live Sokoview price if available
+// Build price series:
+// 1. Simulate historical path from startDate (estimated, realistic)
+// 2. Snap the last point to today's real price from Sokoview API
 async function fetchPrices(symbol, startDate) {
-  var prices;
-  var usedSimulation = false;
+  var prices = simulatePrices(symbol, startDate);
 
-  try {
-    prices = await fetchHistoricalPrices(symbol, startDate);
-    if (!prices || prices.length < 5) throw new Error("Too few data points from Mansa");
-    console.log("Mansa: got " + prices.length + " real price points for " + symbol);
-  } catch(e) {
-    console.warn("Mansa failed, using simulation:", e.message);
-    prices = simulatePrices(symbol, startDate);
-    usedSimulation = true;
-  }
-
-  // Snap last point to today's real price from Sokoview API
+  // Replace final price with today's real Sokoview price
   if (API_KEY) {
     try {
       var live = await fetchLivePrice(symbol);
       if (live && live.price) {
         var today = new Date().toISOString().split("T")[0];
         prices[prices.length - 1] = { date: today, price: Math.round(live.price) };
-        console.log("Sokoview: snapped today price to TZS " + live.price + " for " + symbol);
       }
     } catch(e) {
-      console.warn("Sokoview live price failed:", e.message);
+      console.warn("Sokoview live price unavailable:", e.message);
     }
   }
 
