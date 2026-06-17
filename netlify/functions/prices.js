@@ -2,7 +2,7 @@
 // Called as: GET /.netlify/functions/prices?symbol=CRDB
 //        or: GET /.netlify/functions/prices (all stocks)
 
-const SOKOVIEW_BASE = "https://api.sokoview.co.tz";
+const SOKOVIEW_BASE = "https://api-staging.sokoview.co.tz";
 const SOKOVIEW_KEY  = "skv_live_ef0939a5eb133b5ec5620df82b5be6caa48c49723211be72";
 
 exports.handler = async function(event) {
