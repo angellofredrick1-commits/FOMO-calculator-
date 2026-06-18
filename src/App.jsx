@@ -918,7 +918,7 @@ function StoryPlayer(props) {
 // ── Setup screen ──────────────────────────────────────────────
 export default function App() {
   var [ticker,     setTicker]     = useState("CRDB");
-  var [startDate,  setStartDate]  = useState("2021-06-01");
+  var [startDate,  setStartDate]  = useState("2021-01-04");
   var [amount,     setAmount]     = useState(1000000);
   var [comparison, setComparison] = useState(COMPARISONS[0]);
   var [searchOpen, setSearchOpen] = useState(false);
@@ -1106,7 +1106,7 @@ export default function App() {
             <div>
               <div style={{fontSize:11,fontWeight:600,color:G.body,marginBottom:6}}>{"2 \u00B7 Date"}</div>
               <input type="date" value={startDate}
-                min="2021-06-01"
+                min="2018-06-19"
                 max={new Date(Date.now()-86400000).toISOString().split("T")[0]}
                 onChange={function(e){setStartDate(e.target.value);}}
                 style={{width:"100%",boxSizing:"border-box",
