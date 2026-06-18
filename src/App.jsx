@@ -101,83 +101,114 @@ var G = {
   font:"'Sora',system-ui,sans-serif",
 };
 
-// ── Share card HTML ───────────────────────────────────────────────
+// ── Share card HTML (mobile 375px, white + green only) ──────────
 function buildCardHTML(d) {
-  var sign=d.gain>=0?"+":"", yr=d.startDate.slice(0,4), mult=(d.currentValue/d.invested).toFixed(1);
-  var W=500,H=90,vals=d.monthly.map(function(p){return p.price;});
+  var sign=d.gain>=0?"+":"";
+  var yr=d.startDate.slice(0,4);
+  var mult=(d.currentValue/d.invested).toFixed(1);
+
+  // Sparkline
+  var W=375,H=80;
+  var vals=d.monthly.map(function(p){return p.price;});
   var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
   var pts=d.monthly.map(function(p,i){
-    var x=(i/(d.monthly.length-1))*W, y=H-((p.price-mn)/(mx-mn||1))*(H-12)-6;
+    var x=(i/(d.monthly.length-1))*W;
+    var y=H-((p.price-mn)/(mx-mn||1))*(H-10)-5;
     return x.toFixed(1)+","+y.toFixed(1);
   }).join(" ");
   var area="M"+pts.replace(/ /g," L")+" L"+W+","+H+" L0,"+H+" Z";
+
   var css=""
     +"*{margin:0;padding:0;box-sizing:border-box}"
-    +"body{background:#f0f0f0;display:flex;justify-content:center;padding:32px;font-family:'Sora',system-ui,sans-serif}"
-    +"@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');"
-    +".card{width:480px;background:#fff;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.15)}"
-    +".bar{height:5px;background:#22c55e}"
-    +".body{padding:32px 32px 0}"
-    +".hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}"
-    +".logo{display:flex;align-items:center;gap:8px}"
-    +".icon{width:28px;height:28px;background:#0a0a0a;border-radius:6px;display:flex;align-items:flex-end;gap:2px;padding:4px 5px}"
-    +".b1,.b2,.b3{width:3px;border-radius:1px;background:#22c55e}"
-    +".b1{height:5px}.b2{height:8px}.b3{height:12px}"
-    +".wm{font-size:14px;font-weight:800;color:#0a0a0a;letter-spacing:-.4px}"
-    +".badge{font-size:9px;font-weight:700;letter-spacing:.1em;color:#15803d;border:1.5px solid #22c55e;padding:4px 12px;text-transform:uppercase}"
-    +".narrative{font-size:13px;color:rgba(10,10,10,.45);margin-bottom:4px}"
-    +".reveal{font-size:13px;font-style:italic;color:rgba(10,10,10,.45);margin-bottom:10px}"
-    +".money{font-size:56px;font-weight:800;color:#0a0a0a;letter-spacing:-3px;line-height:1;margin-bottom:12px}"
-    +".money span{color:#22c55e}"
-    +".pills{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}"
-    +".pill-g{background:#22c55e;color:#052e16;font-size:11px;font-weight:700;padding:5px 14px}"
-    +".pill-n{background:#f4f4f4;color:#0a0a0a;font-size:11px;font-weight:600;padding:5px 14px}"
-    +".meta{font-size:11px;color:rgba(10,10,10,.35);margin-bottom:20px;letter-spacing:.02em}"
-    +".spk{margin:0 -32px}"
-    +".spk-lbl{display:flex;justify-content:space-between;font-size:9px;font-weight:600;color:rgba(10,10,10,.3);padding:6px 32px 24px;letter-spacing:.06em;text-transform:uppercase}"
-    +".foot{background:#0a0a0a;padding:12px 32px;display:flex;align-items:center;justify-content:space-between}"
-    +".fl{font-size:9px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}"
-    +".fr{font-size:11px;font-weight:800;color:#22c55e}";
+    +"body{background:#fff;font-family:'Sora',system-ui,sans-serif;width:375px;min-height:480px}"
+    +".card{width:375px;background:#fff;position:relative;overflow:hidden}"
+    +".stripe{height:4px;background:#22c55e;width:100%}"
+    +".body{padding:28px 24px 0}"
+    +".hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}"
+    +".logo{display:flex;align-items:center;gap:7px}"
+    +".icon{width:26px;height:26px;background:#0a0a0a;border-radius:6px;display:flex;align-items:flex-end;gap:2px;padding:4px 5px}"
+    +".b1{width:3px;height:5px;background:#22c55e;border-radius:1px}"
+    +".b2{width:3px;height:8px;background:#22c55e;border-radius:1px}"
+    +".b3{width:3px;height:11px;background:#22c55e;border-radius:1px}"
+    +".wm{font-size:13px;font-weight:800;color:#0a0a0a;letter-spacing:-.3px}"
+    +".badge{font-size:8px;font-weight:700;letter-spacing:.1em;color:#15803d;border:1.5px solid #22c55e;padding:3px 10px;text-transform:uppercase}"
+    +".nar{font-size:12px;color:rgba(10,10,10,.45);margin-bottom:3px;line-height:1.4}"
+    +".rev{font-size:12px;font-style:italic;color:rgba(10,10,10,.45);margin-bottom:8px}"
+    +".money{font-size:52px;font-weight:800;color:#0a0a0a;letter-spacing:-2.5px;line-height:1;margin-bottom:10px}"
+    +".money em{color:#22c55e;font-style:normal}"
+    +".pills{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}"
+    +".pg{background:#22c55e;color:#052e16;font-size:11px;font-weight:700;padding:5px 12px}"
+    +".pn{background:#f4f4f4;color:#0a0a0a;font-size:11px;font-weight:600;padding:5px 12px}"
+    +".meta{font-size:10px;color:rgba(10,10,10,.3);margin-bottom:16px;letter-spacing:.02em}"
+    +".spk{margin:0 -24px}"
+    +".spk svg{display:block}"
+    +".spk-l{display:flex;justify-content:space-between;font-size:9px;font-weight:600;color:rgba(10,10,10,.3);padding:5px 24px 20px;letter-spacing:.05em;text-transform:uppercase}"
+    +".foot{background:#0a0a0a;padding:10px 24px;display:flex;align-items:center;justify-content:space-between}"
+    +".fl{font-size:8px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.06em;text-transform:uppercase}"
+    +".fr{font-size:10px;font-weight:800;color:#22c55e}";
+
   var body=""
-    +"<div class='card'><div class='bar'></div><div class='body'>"
-    +"<div class='hdr'><div class='logo'>"
-    +"<div class='icon'><div class='b1'></div><div class='b2'></div><div class='b3'></div></div>"
-    +"<span class='wm'>sokoview</span></div>"
-    +"<div class='badge'>"+(d.gain>=0?"Certified FOMO":"No Regrets")+"</div></div>"
-    +"<div class='narrative'>If you\u2019d put TZS "+fmtS(d.invested)+" in "+d.stock.name+" in "+yr+"\u2026</div>"
-    +"<div class='reveal'>today it would be worth</div>"
-    +"<div class='money'>TZS <span>"+fmtS(d.currentValue)+"</span></div>"
-    +"<div class='pills'><div class='pill-g'>"+sign+d.returnPct.toFixed(0)+"%</div>"
-    +"<div class='pill-n'>"+mult+"\xd7 the money</div>"
-    +"<div class='pill-n'>TZS "+fmtN(d.buyPrice)+" \u2192 "+fmtN(d.currentPrice)+"/share</div></div>"
-    +"<div class='meta'>"+fmtN(d.shares)+" shares \u00b7 "+d.startDate+" \u2014 Jun 2026</div>"
+    +"<link href='https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap' rel='stylesheet'>"
+    +"<div class='card'>"
+    +"<div class='stripe'></div>"
+    +"<div class='body'>"
+    +"<div class='hdr'>"
+    +"<div class='logo'><div class='icon'><div class='b1'></div><div class='b2'></div><div class='b3'></div></div><span class='wm'>sokoview</span></div>"
+    +"<div class='badge'>"+(d.gain>=0?"Certified FOMO":"No Regrets")+"</div>"
+    +"</div>"
+    +"<div class='nar'>If you’d put TZS "+fmtS(d.invested)+" in "+d.stock.name+" in "+yr+"…</div>"
+    +"<div class='rev'>today it would be worth</div>"
+    +"<div class='money'>TZS <em>"+fmtS(d.currentValue)+"</em></div>"
+    +"<div class='pills'>"
+    +"<div class='pg'>"+sign+d.returnPct.toFixed(0)+"%</div>"
+    +"<div class='pn'>"+mult+"× the money</div>"
+    +"<div class='pn'>TZS "+fmtN(d.buyPrice)+" → "+fmtN(d.currentPrice)+"/share</div>"
+    +"</div>"
+    +"<div class='meta'>"+fmtN(d.shares)+" shares · "+d.startDate+" — Jun 2026</div>"
     +"<div class='spk'>"
-    +"<svg viewBox='0 0 "+W+" "+H+"' width='100%' height='"+H+"' style='display:block' preserveAspectRatio='none'>"
+    +"<svg viewBox='0 0 "+W+" "+H+"' width='"+W+"' height='"+H+"' preserveAspectRatio='none'>"
     +"<defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'>"
-    +"<stop offset='0%' stop-color='#22c55e' stop-opacity='.2'/>"
+    +"<stop offset='0%' stop-color='#22c55e' stop-opacity='.18'/>"
     +"<stop offset='100%' stop-color='#22c55e' stop-opacity='0'/></linearGradient></defs>"
     +"<path d='"+area+"' fill='url(#g)'/>"
-    +"<polyline points='"+pts+"' fill='none' stroke='#22c55e' stroke-width='2.5' stroke-linejoin='round' stroke-linecap='round'/>"
+    +"<polyline points='"+pts+"' fill='none' stroke='#22c55e' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/>"
     +"</svg>"
-    +"<div class='spk-lbl'><span>"+yr+"</span><span>Jun 2026</span></div>"
-    +"</div></div>"
-    +"<div class='foot'><span class='fl'>Illustrative \u00b7 Past \u2260 future \u00b7 Not advice</span>"
-    +"<span class='fr'>sokoview.co.tz</span></div></div>";
-  return "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
-    +"<link href='https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap' rel='stylesheet'>"
-    +"<style>"+css+"</style></head><body>"+body+"</body></html>";
+    +"<div class='spk-l'><span>"+yr+"</span><span>Jun 2026</span></div>"
+    +"</div>"
+    +"</div>"
+    +"<div class='foot'>"
+    +"<span class='fl'>Illustrative · Past ≠ future · Not advice</span>"
+    +"<span class='fr'>sokoview.co.tz</span>"
+    +"</div>"
+    +"</div>";
+
+  return "<!DOCTYPE html><html><head><meta charset='UTF-8'><style>"+css+"</style></head><body>"+body+"</body></html>";
 }
 
+
 // ── Logo ─────────────────────────────────────────────────────────
+function LogoIcon(props) {
+  var size = props.size || 28;
+  var dark = props.dark || G.black;
+  return (
+    <div style={{width:size,height:size,background:dark,borderRadius:Math.round(size*0.22),
+      display:"flex",alignItems:"flex-end",gap:"2px",
+      padding:Math.round(size*0.15)+"px "+Math.round(size*0.18)+"px",
+      boxSizing:"border-box",flexShrink:0}}>
+      <div style={{width:Math.round(size*0.11),background:G.green,borderRadius:1,
+        height:Math.round(size*0.19),alignSelf:"flex-end"}}/>
+      <div style={{width:Math.round(size*0.11),background:G.green,borderRadius:1,
+        height:Math.round(size*0.30),alignSelf:"flex-end"}}/>
+      <div style={{width:Math.round(size*0.11),background:G.green,borderRadius:1,
+        height:Math.round(size*0.45),alignSelf:"flex-end"}}/>
+    </div>
+  );
+}
+
 function Logo() {
   return (
-    <div style={{display:"flex",alignItems:"center",gap:8}}>
-      <div style={{width:28,height:28,background:G.black,borderRadius:6,
-        display:"flex",alignItems:"flex-end",gap:2,padding:"4px 5px"}}>
-        <div style={{width:3,height:5,background:G.green,borderRadius:1}}/>
-        <div style={{width:3,height:8,background:G.green,borderRadius:1}}/>
-        <div style={{width:3,height:12,background:G.green,borderRadius:1}}/>
-      </div>
+    <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+      <LogoIcon size={28}/>
       <span style={{fontSize:15,fontWeight:800,color:G.black,letterSpacing:"-.4px"}}>sokoview</span>
     </div>
   );
@@ -400,13 +431,29 @@ function StoryPlayer(props) {
         )}
 
         {slide==="share" && (
-          <div style={{width:"100%",height:"100%",display:"flex",flexDirection:"column",
-            gap:0}} onClick={function(e){e.stopPropagation();}}>
-            <div style={{flex:1,overflow:"hidden",minHeight:0}}>
-              <iframe srcDoc={html} style={{width:"100%",height:"100%",border:"none"}}
-                scrolling="no" title="Share card"/>
+          <div style={{width:"100%",display:"flex",flexDirection:"column",
+            gap:0,height:"100%"}} onClick={function(e){e.stopPropagation();}}>
+
+            {/* Card preview — scaled to fit */}
+            <div style={{flex:1,display:"flex",alignItems:"center",
+              justifyContent:"center",overflow:"hidden",minHeight:0,padding:"0 0 8px"}}>
+              <div style={{
+                width:"100%",maxWidth:375,
+                boxShadow:"0 8px 32px rgba(0,0,0,.12)",
+                overflow:"hidden",flexShrink:0,
+              }}>
+                <iframe srcDoc={html}
+                  style={{width:375,height:480,border:"none",
+                    display:"block",
+                    transform:"scale("+Math.min(1,(320/375))+")",
+                    transformOrigin:"top left",
+                    marginBottom:-(480*(1-Math.min(1,(320/375))))+"px"}}
+                  scrolling="no" title="Share card"/>
+              </div>
             </div>
-            <div style={{display:"flex",gap:6,paddingTop:10,flexShrink:0}}>
+
+            {/* Primary actions */}
+            <div style={{display:"flex",gap:6,flexShrink:0,marginBottom:6}}>
               <button onClick={copyLink} style={{flex:1,padding:"11px 0",
                 background:copied?G.green:"#f4f4f4",
                 color:copied?G.white:G.black,
@@ -418,13 +465,43 @@ function StoryPlayer(props) {
                 border:"none",fontSize:11,fontWeight:700,cursor:"pointer",letterSpacing:".04em"}}>
                 SAVE CARD
               </button>
-              <button onClick={function(e){e.stopPropagation();onRestart();}}
-                style={{flex:1,padding:"11px 0",
-                background:G.black,color:G.white,
-                border:"none",fontSize:11,fontWeight:700,cursor:"pointer",letterSpacing:".04em"}}>
-                START OVER
-              </button>
             </div>
+
+            {/* Social share buttons */}
+            <div style={{display:"flex",gap:6,flexShrink:0,marginBottom:6}}>
+              <a href={"https://wa.me/?text="+encodeURIComponent("What if I’d invested in "+data.stock.name+"? TZS "+fmtS(data.currentValue)+" today! via sokoview.co.tz")}
+                target="_blank" rel="noopener noreferrer"
+                style={{flex:1,padding:"10px 0",
+                  background:"#25D366",color:G.white,textDecoration:"none",
+                  fontSize:11,fontWeight:700,letterSpacing:".04em",
+                  textAlign:"center",display:"block"}}>
+                WHATSAPP
+              </a>
+              <a href={"https://twitter.com/intent/tweet?text="+encodeURIComponent("If I’d invested TZS "+fmtS(data.invested)+" in "+data.stock.name+" in "+data.startDate.slice(0,4)+", I’d have TZS "+fmtS(data.currentValue)+" today. "+data.returnPct.toFixed(0)+"% return. #DSE #Sokoview sokoview.co.tz")}
+                target="_blank" rel="noopener noreferrer"
+                style={{flex:1,padding:"10px 0",
+                  background:"#1DA1F2",color:G.white,textDecoration:"none",
+                  fontSize:11,fontWeight:700,letterSpacing:".04em",
+                  textAlign:"center",display:"block"}}>
+                TWITTER / X
+              </a>
+              <a href={"https://www.linkedin.com/sharing/share-offsite/?url="+encodeURIComponent("https://sokoview.co.tz")}
+                target="_blank" rel="noopener noreferrer"
+                style={{flex:1,padding:"10px 0",
+                  background:"#0A66C2",color:G.white,textDecoration:"none",
+                  fontSize:11,fontWeight:700,letterSpacing:".04em",
+                  textAlign:"center",display:"block"}}>
+                LINKEDIN
+              </a>
+            </div>
+
+            {/* Start over */}
+            <button onClick={function(e){e.stopPropagation();onRestart();}}
+              style={{width:"100%",padding:"11px 0",flexShrink:0,
+              background:"#f4f4f4",color:G.muted,
+              border:"none",fontSize:11,fontWeight:700,cursor:"pointer",letterSpacing:".04em"}}>
+              START OVER
+            </button>
           </div>
         )}
       </div>
