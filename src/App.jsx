@@ -233,145 +233,122 @@ function fmtC(n) { return "TZS " + fmtS(n); }
 
 // ── Share card HTML (pure string, no JSX, no template literals) ──
 function buildCardHTML(d, comp) {
-  var pos    = d.gain >= 0;
-  var col    = pos ? "#22c55e" : "#ef4444";
-  var colDk  = pos ? "#16a34a" : "#dc2626";
-  var sign   = pos ? "+" : "";
-  var arrow  = pos ? "\u25B2" : "\u25BC";
-  var yr     = d.startDate.slice(0, 4);
-  var W = 420, H = 90;
+  var pos   = d.gain >= 0;
+  var yr    = d.startDate.slice(0, 4);
+  var sign  = pos ? "+" : "";
+
+  // Sparkline
+  var W = 500, H = 80;
   var vals = d.monthly.map(function(p) { return p.price; });
   var mn = Math.min.apply(null, vals);
   var mx = Math.max.apply(null, vals);
   var pts = d.monthly.map(function(p, i) {
     var x = (i / (d.monthly.length - 1)) * W;
-    var y = H - ((p.price - mn) / (mx - mn || 1)) * (H - 14) - 7;
+    var y = H - ((p.price - mn) / (mx - mn || 1)) * (H - 10) - 5;
     return x.toFixed(1) + "," + y.toFixed(1);
   }).join(" ");
   var area = "M" + pts.replace(/ /g, " L") + " L" + W + "," + H + " L0," + H + " Z";
+
+  // Comparison
   var totalItems = Math.floor(d.currentValue / comp.price);
   var origItems  = Math.floor(d.invested / comp.price);
   var extra      = totalItems - origItems;
-  var years      = d.monthly.length / 12;
-  var savingsVal = d.invested * Math.pow(1.05, years);
-  var maxV       = Math.max(d.currentValue, savingsVal);
-  var stockW     = Math.round((d.currentValue / maxV) * 96);
-  var saveW      = Math.round((savingsVal / maxV) * 96);
+
+  // Card accent color — Sokoview green on cream, always warm
+  var ACCENT  = "#22c55e";
+  var BG      = "#fff8f0";   // warm cream
+  var BLACK   = "#0c0b0a";
+  var MUTED   = "rgba(12,11,10,.45)";
+  var BADGE_BG = "rgba(34,197,94,.12)";
+
+  var multiplier = (d.currentValue / d.invested).toFixed(1);
+
+  // Editorial copy lines (whatifstocks style)
+  var narrativeLine = "If you’d put TZS " + fmtS(d.invested) + " in " + d.stock.name + " in " + yr + "…";
+  var revealLine    = "today it would be worth";
+  var badge         = pos ? "CERTIFIED FOMO" : "DODGED A BULLET";
+  var compLine      = "Your gain alone could buy <strong>" + extra + " " + comp.label.toLowerCase() + "s</strong> extra.";
+  var multLine      = multiplier + "× the money";
 
   var css = ""
-    + "*{margin:0;padding:0;box-sizing:border-box;font-family:Sora,system-ui,sans-serif}"
-    + "body{background:#e8e8e8;display:flex;justify-content:center;padding:32px}"
-    + ".card{width:500px;background:#fff;border-radius:24px;overflow:hidden;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.18)}"
-    + ".card::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(0,0,0,.032) 1px,transparent 1px);background-size:20px 20px;z-index:0;pointer-events:none}"
-    + ".card::before{content:'';position:absolute;width:420px;height:420px;top:-90px;right:-90px;border-radius:50%;background:radial-gradient(circle,rgba(34,197,94,.12) 0%,transparent 68%);z-index:0;pointer-events:none}"
-    + ".inn{position:relative;z-index:3}"
-    + ".tb{height:4px;background:" + col + "}"
-    + ".bod{padding:26px 28px 0;display:flex;flex-direction:column;gap:18px}"
-    + ".hdr{display:flex;align-items:center;justify-content:space-between}"
-    + ".logo{display:flex;align-items:center;gap:8px}"
-    + ".li{width:30px;height:30px;background:#0a0a0a;border-radius:7px;display:flex;align-items:flex-end;gap:2.5px;padding:5px 6px}"
-    + ".b1,.b2,.b3{width:3.5px;border-radius:1.5px;background:#22c55e}"
-    + ".b1{height:5.5px}.b2{height:9px}.b3{height:13px}"
-    + ".lt{font-size:14px;font-weight:800;color:#0a0a0a;letter-spacing:-.5px}"
-    + ".ld{font-size:11px;font-weight:700;color:#9ca3af}"
-    + ".bdg{font-size:10px;font-weight:700;color:#9ca3af}"
-    + ".pill{display:inline-flex;align-items:center;gap:6px;width:fit-content;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#16a34a;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.22);padding:4px 12px;border-radius:100px}"
-    + ".dot{width:6px;height:6px;border-radius:50%;background:#22c55e}"
-    + ".il{font-size:16px;font-weight:700;color:#6b7280}"
-    + ".grn{color:#22c55e}"
-    + ".vl{font-size:54px;font-weight:800;color:" + col + ";letter-spacing:-2.8px;line-height:.94}"
-    + ".sl{font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.09em;margin-top:6px}"
-    + ".strip{display:flex;gap:1px;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}"
-    + ".sc{flex:1;padding:12px 10px}.sc.acc{background:rgba(34,197,94,.07)}.sc.pl{background:#f9fafb}.sc+.sc{border-left:1px solid #e5e7eb}"
-    + ".sv{font-size:15px;font-weight:800;letter-spacing:-.4px}.sv.g{color:#16a34a}.sv.k{color:#0a0a0a}"
-    + ".ss{font-size:8px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:.07em;margin-top:3px}"
-    + ".spk{background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px 14px 10px}"
-    + ".sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}"
-    + ".sl2{font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.09em}"
-    + ".sr{font-size:13px;font-weight:800;color:" + colDk + "}"
-    + ".sd{display:flex;justify-content:space-between;margin-top:8px;font-size:9px;font-weight:600;color:#9ca3af}"
-    + ".comp{background:#f9fafb;border:1px solid #e5e7eb;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}"
-    + ".ct{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}"
-    + ".ch{font-size:13px;font-weight:800;color:#0a0a0a;margin-bottom:3px}"
-    + ".cs{font-size:11px;font-weight:600;color:#6b7280}"
-    + ".cb{font-size:20px;font-weight:800;color:#16a34a;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:8px 14px;white-space:nowrap;flex-shrink:0}"
-    + ".bb{height:7px;background:#e5e7eb;border-radius:100px;overflow:hidden}"
-    + ".bf{height:100%;background:#22c55e;border-radius:100px;width:100%}"
-    + ".bl{display:flex;justify-content:space-between;font-size:9px;font-weight:700;margin-top:5px}"
-    + ".blo{color:#9ca3af}.blg{color:#16a34a}"
-    + ".vs{display:flex;flex-direction:column;gap:10px}"
-    + ".vl2{font-size:9px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.09em}"
-    + ".vr{display:flex;flex-direction:column;gap:4px}"
-    + ".vm{display:flex;justify-content:space-between;align-items:center}"
-    + ".vn{font-size:11px;font-weight:700;color:#0a0a0a}"
-    + ".vv{font-size:12px;font-weight:800}"
-    + ".vb{height:6px;background:#f3f4f6;border-radius:100px;overflow:hidden}"
-    + ".vf{height:100%;border-radius:100px}"
-    + ".src{font-size:9px;font-weight:600;color:#9ca3af;text-align:right}"
-    + ".foot{margin-top:20px;background:#0a0a0a;padding:13px 28px;display:flex;align-items:center;justify-content:space-between}"
-    + ".fl{font-size:10px;font-weight:700;color:rgba(255,255,255,.45)}"
-    + ".fr{font-size:12px;font-weight:800;color:#22c55e}";
+    + "*{margin:0;padding:0;box-sizing:border-box}"
+    + "body{background:#e8e2da;display:flex;justify-content:center;align-items:flex-start;padding:32px;min-height:100vh}"
+    + ".card{width:480px;background:" + BG + ";border-radius:20px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.22);font-family:system-ui,sans-serif}"
+    + ".top{padding:26px 28px 20px;position:relative}"
+    + ".hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}"
+    + ".logo{display:flex;align-items:center;gap:7px}"
+    + ".li{width:26px;height:26px;background:" + BLACK + ";border-radius:6px;display:flex;align-items:flex-end;gap:2px;padding:4px 5px}"
+    + ".b1,.b2,.b3{width:3px;border-radius:1px;background:" + ACCENT + "}"
+    + ".b1{height:5px}.b2{height:8px}.b3{height:12px}"
+    + ".lt{font-size:13px;font-weight:700;color:" + BLACK + ";letter-spacing:-.3px}"
+    + ".badge{font-size:9px;font-weight:800;letter-spacing:.12em;color:#15803d;background:" + BADGE_BG + ";border:1px solid rgba(34,197,94,.3);border-radius:100px;padding:4px 11px}"
+    + ".narrative{font-size:14px;color:" + MUTED + ";margin-bottom:4px;line-height:1.4}"
+    + ".reveal{font-size:13px;font-style:italic;color:" + MUTED + ";margin-bottom:8px}"
+    + ".money{font-size:52px;font-weight:800;color:" + BLACK + ";letter-spacing:-2.5px;line-height:1;margin-bottom:6px;font-feature-settings:'kern'}"
+    + ".pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}"
+    + ".pill{font-size:11px;font-weight:700;border-radius:100px;padding:5px 13px}"
+    + ".pill-g{background:" + ACCENT + ";color:#052e16}"
+    + ".pill-n{background:rgba(12,11,10,.07);color:" + BLACK + "}"
+    + ".comp-line{font-size:13px;color:" + MUTED + ";line-height:1.5;margin-bottom:18px}"
+    + ".comp-line strong{color:" + BLACK + "}"
+    + ".spk-wrap{margin:0 -0px;position:relative}"
+    + ".spk-labels{display:flex;justify-content:space-between;font-size:10px;font-weight:600;color:" + MUTED + ";padding:6px 2px 0}"
+    + ".foot{background:" + BLACK + ";padding:11px 28px;display:flex;align-items:center;justify-content:space-between}"
+    + ".fl{font-size:9px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase}"
+    + ".fr{font-size:11px;font-weight:800;color:" + ACCENT + "}";
 
   var body = ""
-    + "<div class=\"card\"><div class=\"inn\">"
-    + "<div class=\"tb\"></div>"
-    + "<div class=\"bod\">"
-    + "<div class=\"hdr\">"
-    + "<div class=\"logo\"><div class=\"li\"><div class=\"b1\"></div><div class=\"b2\"></div><div class=\"b3\"></div></div>"
-    + "<span class=\"lt\">sokoview</span><span class=\"ld\">.co.tz</span></div>"
-    + "<div class=\"bdg\">DSE " + DOT + yr + ARR + "Jun 2026</div>"
-    + "</div>"
-    + "<div class=\"pill\"><div class=\"dot\"></div>FOMO CALCULATOR</div>"
-    + "<div>"
-    + "<div class=\"il\">TZS " + fmtS(d.invested) + " in <span class=\"grn\">" + d.ticker + "</span> became</div>"
-    + "<div class=\"vl\">" + fmtC(d.currentValue) + "</div>"
-    + "<div class=\"sl\">" + d.stock.name + DOT + fmtN(d.shares) + " shares" + DOT + d.startDate + ARR + "Today</div>"
-    + "</div>"
-    + "<div class=\"strip\">"
-    + "<div class=\"sc acc\"><div class=\"sv g\">" + sign + fmtS(d.gain) + "</div><div class=\"ss\">Total gain</div></div>"
-    + "<div class=\"sc pl\"><div class=\"sv g\">" + sign + d.returnPct.toFixed(1) + "%</div><div class=\"ss\">Return</div></div>"
-    + "<div class=\"sc pl\"><div class=\"sv k\">TZS " + fmtN(d.buyPrice) + "</div><div class=\"ss\">Buy price</div></div>"
-    + "<div class=\"sc pl\"><div class=\"sv k\">TZS " + fmtN(d.currentPrice) + "</div><div class=\"ss\">Price today</div></div>"
-    + "</div>"
-    + "<div class=\"spk\">"
-    + "<div class=\"sh\"><span class=\"sl2\">Portfolio value over time</span>"
-    + "<span class=\"sr\">" + arrow + " " + sign + d.returnPct.toFixed(1) + "% total return</span></div>"
-    + "<svg viewBox=\"0 0 " + W + " " + H + "\" width=\"100%\" height=\"" + H + "\" style=\"display:block\">"
-    + "<defs><linearGradient id=\"g\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\">"
-    + "<stop offset=\"0%\" stop-color=\"" + col + "\" stop-opacity=\".28\"/>"
-    + "<stop offset=\"100%\" stop-color=\"" + col + "\" stop-opacity=\".02\"/></linearGradient></defs>"
-    + "<path d=\"" + area + "\" fill=\"url(#g)\"/>"
-    + "<polyline points=\"" + pts + "\" fill=\"none\" stroke=\"" + col + "\" stroke-width=\"2.5\" stroke-linejoin=\"round\" stroke-linecap=\"round\"/>"
-    + "</svg>"
-    + "<div class=\"sd\"><span>" + yr + "</span><span>Jun 2026</span></div>"
-    + "</div>"
-    + "<div class=\"comp\">"
-    + "<div class=\"ct\"><div>"
-    + "<div class=\"ch\">Instead of buying " + comp.label.toLowerCase() + HELL + "</div>"
-    + "<div class=\"cs\">Your profit alone buys <strong style=\"color:#16a34a\">" + extra + " extra</strong></div>"
-    + "</div><div class=\"cb\">+" + extra + " " + comp.emoji + "</div></div>"
-    + "<div><div class=\"bb\"><div class=\"bf\"></div></div>"
-    + "<div class=\"bl\"><span class=\"blo\">Could buy " + origItems + " in " + yr + "</span>"
-    + "<span class=\"blg\">Can buy " + totalItems + " today</span></div></div>"
-    + "</div>"
-    + "<div class=\"vs\">"
-    + "<div class=\"vl2\">vs. alternatives (same " + fmtC(d.invested) + " invested)</div>"
-    + "<div class=\"vr\"><div class=\"vm\">"
-    + "<span class=\"vn\">" + d.ticker + " shares</span>"
-    + "<span class=\"vv\" style=\"color:#16a34a\">" + fmtC(d.currentValue) + "</span></div>"
-    + "<div class=\"vb\"><div class=\"vf\" style=\"width:" + stockW + "%;background:#22c55e\"></div></div></div>"
-    + "<div class=\"vr\"><div class=\"vm\">"
-    + "<span class=\"vn\">Bank savings (5% p.a.)</span>"
-    + "<span class=\"vv\" style=\"color:#6b7280\">" + fmtC(savingsVal) + "</span></div>"
-    + "<div class=\"vb\"><div class=\"vf\" style=\"width:" + saveW + "%;background:#d1d5db\"></div></div></div>"
-    + "</div>"
-    + "<div class=\"src\">" + (API_KEY ? "Live DSE data" : "Simulated prices") + " via sokoview.co.tz</div>"
-    + "</div>"
-    + "<div class=\"foot\"><span class=\"fl\">Track your DSE portfolio free</span><span class=\"fr\">sokoview.co.tz</span></div>"
-    + "</div></div>";
+    + "<div class='card'>"
+    + "<div class='top'>"
 
-  return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">"
-    + "<link href=\"https://fonts.googleapis.com/css2?family=Sora:wght@700;800&display=swap\" rel=\"stylesheet\">"
+    // Header: logo + badge
+    + "<div class='hdr'>"
+    + "<div class='logo'>"
+    + "<div class='li'><div class='b1'></div><div class='b2'></div><div class='b3'></div></div>"
+    + "<span class='lt'>sokoview</span>"
+    + "</div>"
+    + "<div class='badge'>" + badge + "</div>"
+    + "</div>"
+
+    // Narrative copy
+    + "<div class='narrative'>" + comp.emoji + " " + narrativeLine + "</div>"
+    + "<div class='reveal'>" + revealLine + "</div>"
+
+    // Big money number
+    + "<div class='money'>" + fmtC(d.currentValue) + "</div>"
+
+    // Return pills
+    + "<div class='pills'>"
+    + "<div class='pill pill-g'>" + sign + d.returnPct.toFixed(0) + "%</div>"
+    + "<div class='pill pill-n'>" + multLine + "</div>"
+    + "<div class='pill pill-n'>TZS " + fmtN(d.buyPrice) + " → " + fmtN(d.currentPrice) + "</div>"
+    + "</div>"
+
+    // Comparison line
+    + "<div class='comp-line'>" + compLine + "</div>"
+
+    // Sparkline — full bleed
+    + "<div class='spk-wrap'>"
+    + "<svg viewBox='0 0 " + W + " " + H + "' width='100%' height='" + H + "' style='display:block;' preserveAspectRatio='none'>"
+    + "<defs><linearGradient id='sg' x1='0' y1='0' x2='0' y2='1'>"
+    + "<stop offset='0%' stop-color='" + ACCENT + "' stop-opacity='.25'/>"
+    + "<stop offset='100%' stop-color='" + ACCENT + "' stop-opacity='.02'/></linearGradient></defs>"
+    + "<path d='" + area + "' fill='url(#sg)'/>"
+    + "<polyline points='" + pts + "' fill='none' stroke='" + ACCENT + "' stroke-width='2.5' stroke-linejoin='round' stroke-linecap='round'/>"
+    + "</svg>"
+    + "<div class='spk-labels'><span>" + yr + "</span><span>Today</span></div>"
+    + "</div>"
+
+    + "</div>" // end .top
+
+    + "<div class='foot'>"
+    + "<span class='fl'>Illustrative · Past ≠ future · Not advice</span>"
+    + "<span class='fr'>sokoview.co.tz</span>"
+    + "</div>"
+
+    + "</div>"; // end .card
+
+  return "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
     + "<style>" + css + "</style></head><body>" + body + "</body></html>";
 }
 
