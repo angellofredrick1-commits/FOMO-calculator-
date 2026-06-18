@@ -86,16 +86,16 @@ var DSE_STOCKS = [
 ];
 
 var COMPARISONS = [
-  {id:"phone_mid",  label:"Mid-range phone",   sub:"Samsung A55 / Tecno Camon",    price:850000},
-  {id:"phone_flag", label:"Flagship phone",    sub:"Samsung S24 / iPhone 15",      price:2800000},
-  {id:"laptop",     label:"Laptop",            sub:"HP / Lenovo / Dell",           price:1800000},
-  {id:"tv",         label:"Smart TV 43\"",     sub:"Samsung / LG / TCL",           price:1200000},
-  {id:"fridge",     label:"Refrigerator",      sub:"250L double-door",             price:1500000},
-  {id:"rent",       label:"6 months rent",     sub:"1-bed Kinondoni, DSM",         price:3600000},
-  {id:"car",        label:"Car down payment",  sub:"Toyota Vitz deposit",          price:5000000},
-  {id:"school",     label:"School fees 1yr",   sub:"Private secondary school",     price:1400000},
-  {id:"solar",      label:"Solar system",      sub:"300W home system",             price:2200000},
-  {id:"vacation",   label:"Zanzibar vacation", sub:"5 nights + flights",           price:2000000},
+  {id:"phone_mid",  label:"Mid-range phone",   icon:"📱", price:850000},
+  {id:"phone_flag", label:"Flagship phone",    icon:"📲", price:2800000},
+  {id:"laptop",     label:"Laptop",            icon:"💻", price:1800000},
+  {id:"tv",         label:"TV",                icon:"📺", price:1200000},
+  {id:"fridge",     label:"Fridge",            icon:"🧊", price:1500000},
+  {id:"rent",       label:"6mo rent",          icon:"🏠", price:3600000},
+  {id:"car",        label:"Car deposit",       icon:"🚗", price:5000000},
+  {id:"school",     label:"School fees",       icon:"🎓", price:1400000},
+  {id:"solar",      label:"Solar system",      icon:"☀️", price:2200000},
+  {id:"vacation",   label:"Zanzibar trip",     icon:"🏖️", price:2000000},
 ];
 
 var MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -276,6 +276,118 @@ function CountUp(props) {
   return props.render(val);
 }
 
+// ── Card preview (real DOM — html2canvas can capture this) ──────
+function CardPreview(props) {
+  var d=props.data;
+  var sign=d.gain>=0?"+":"";
+  var yr=d.startDate.slice(0,4);
+  var mon=MONTHS[parseInt(d.startDate.slice(5,7))-1];
+  var mult=(d.currentValue/d.invested).toFixed(1);
+  var compItems=Math.floor(d.gain/d.comparison.price);
+
+  // Sparkline via canvas-friendly SVG
+  var vals=d.monthly.map(function(p){return p.price;});
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  var W=375,H=55;
+  var pts=d.monthly.map(function(p,i){
+    var x=(i/(d.monthly.length-1))*W;
+    var y=H-((p.price-mn)/(mx-mn||1))*(H-8)-4;
+    return x.toFixed(1)+","+y.toFixed(1);
+  }).join(" ");
+  var area="M"+pts.replace(/ /g," L")+" L"+W+","+H+" L0,"+H+" Z";
+
+  var S={fontFamily:"'Sora',system-ui,sans-serif"};
+
+  return (
+    <div id="fomo-card-render" style={{...S,width:375,background:G.white,overflow:"hidden"}}>
+      {/* Top stripe */}
+      <div style={{height:4,background:G.green}}/>
+      <div style={{padding:"22px 24px 0"}}>
+        {/* Header */}
+        <div style={{display:"flex",alignItems:"center",
+          justifyContent:"space-between",marginBottom:18}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <LogoIcon size={22}/>
+            <span style={{...S,fontSize:12,fontWeight:800,
+              color:G.black,letterSpacing:"-.3px"}}>sokoview</span>
+          </div>
+          <div style={{...S,fontSize:8,fontWeight:700,letterSpacing:".09em",
+            color:G.greenDark,border:"1.5px solid "+G.green,
+            padding:"3px 8px",textTransform:"uppercase"}}>
+            {d.gain>=0?"Certified FOMO":"No Regrets"}
+          </div>
+        </div>
+        {/* Story text */}
+        <div style={{...S,fontSize:12,color:G.black,lineHeight:1.65,marginBottom:14}}>
+          I spent{" "}
+          <strong>TZS {fmtN(d.invested)}</strong>{" "}on a{" "}
+          <strong>{d.comparison.label.toLowerCase()}</strong>{" "}in{" "}
+          <strong>{mon} {yr}</strong>.<br/>
+          In <strong>{d.stock.name}</strong> it’d be{" "}
+          <strong style={{color:G.green}}>TZS {fmtN(d.currentValue)}</strong>{" "}today{" "}
+          (<strong>{sign}{d.returnPct.toFixed(0)}%</strong>)
+          {compItems>0 && <span>, about <strong>{compItems} {d.comparison.label.toLowerCase()}s</strong></span>}.
+        </div>
+        {/* Big number */}
+        <div style={{...S,fontSize:44,fontWeight:800,color:G.black,
+          letterSpacing:"-2px",lineHeight:1,marginBottom:8}}>
+          TZS <span style={{color:G.green}}>{fmtN(d.currentValue)}</span>
+        </div>
+        {/* Pills */}
+        <div style={{display:"flex",gap:5,marginBottom:12,flexWrap:"wrap"}}>
+          <span style={{...S,background:G.green,color:"#052e16",
+            fontSize:10,fontWeight:700,padding:"4px 10px"}}>
+            {sign}{d.returnPct.toFixed(0)}%
+          </span>
+          <span style={{...S,background:"#f4f4f4",color:G.black,
+            fontSize:10,fontWeight:600,padding:"4px 10px"}}>
+            {mult}x the money
+          </span>
+          <span style={{...S,background:"#f4f4f4",color:G.black,
+            fontSize:10,fontWeight:600,padding:"4px 10px"}}>
+            {fmtN(d.shares)} shares
+          </span>
+        </div>
+        {/* Sparkline */}
+        <div style={{margin:"0 -24px"}}>
+          <svg viewBox={"0 0 "+W+" "+H} width={W} height={H}
+            style={{display:"block"}} preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={G.green} stopOpacity="0.15"/>
+                <stop offset="100%" stopColor={G.green} stopOpacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d={area} fill="url(#cg)"/>
+            <polyline points={pts} fill="none" stroke={G.green}
+              strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+          </svg>
+        </div>
+        {/* CTA */}
+        <div style={{...S,fontSize:9,color:"rgba(10,10,10,.3)",
+          padding:"6px 0 18px",fontWeight:500}}>
+          Try yours at{" "}
+          <span style={{color:G.green,fontWeight:700}}>
+            https://sokoview.netlify.app
+          </span>
+          {" "}· Past ≠ future. Not advice.
+        </div>
+      </div>
+      {/* Footer bar */}
+      <div style={{background:G.black,padding:"10px 24px",
+        display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <span style={{...S,fontSize:8,color:"rgba(255,255,255,.3)",
+          fontWeight:600,letterSpacing:".06em",textTransform:"uppercase"}}>
+          Illustrative · Past ≠ future · Not advice
+        </span>
+        <span style={{...S,fontSize:10,fontWeight:800,color:G.green}}>
+          sokoview.co.tz
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ── Story player ──────────────────────────────────────────────────
 var SLIDES=["opener","bought","shares","multiply","share"];
 
@@ -322,11 +434,38 @@ function StoryPlayer(props) {
   var compItems=Math.floor(data.gain/data.comparison.price);
 
   function downloadCard(){
-    var blob=new Blob([html],{type:"text/html"});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement("a");
-    a.href=url;a.download="sokoview-fomo-"+data.ticker+".html";a.click();
-    URL.revokeObjectURL(url);
+    var cardEl=document.getElementById("fomo-card-render");
+    if(!cardEl){console.warn("card element not found");return;}
+    if(typeof window.html2canvas==="undefined"){
+      // Fallback: download HTML if html2canvas not loaded
+      var blob=new Blob([html],{type:"text/html"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a");
+      a.href=url;a.download="sokoview-fomo-"+data.ticker+".html";a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
+    window.html2canvas(cardEl,{
+      scale:2,
+      useCORS:true,
+      backgroundColor:"#ffffff",
+      width:375,
+      logging:false,
+    }).then(function(canvas){
+      var url=canvas.toDataURL("image/png");
+      var a=document.createElement("a");
+      a.href=url;
+      a.download="sokoview-fomo-"+data.ticker+"-"+data.startDate.slice(0,7)+".png";
+      a.click();
+    }).catch(function(e){
+      console.warn("html2canvas failed:",e.message);
+      // Fallback to HTML
+      var blob=new Blob([html],{type:"text/html"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a");
+      a.href=url;a.download="sokoview-fomo-"+data.ticker+".html";a.click();
+      URL.revokeObjectURL(url);
+    });
   }
   function copyLink(){
     navigator.clipboard.writeText(window.location.href).then(function(){
@@ -451,16 +590,17 @@ function StoryPlayer(props) {
           <div style={{width:"100%",height:"100%",display:"flex",
             flexDirection:"column"}} onClick={function(e){e.stopPropagation();}}>
 
-            {/* Card preview */}
+            {/* Card preview — rendered as real DOM for html2canvas */}
             <div style={{flex:1,display:"flex",alignItems:"center",
-              justifyContent:"center",overflow:"hidden",minHeight:0}}>
-              <div style={{boxShadow:"0 8px 32px rgba(0,0,0,.12)",overflow:"hidden",
-                width:"100%",maxWidth:340}}>
-                <iframe srcDoc={html} title="Share card" scrolling="no"
-                  style={{width:375,height:390,border:"none",display:"block",
-                    transform:"scale("+Math.min(1,320/375)+")",
-                    transformOrigin:"top left",
-                    marginBottom:-(390*(1-Math.min(1,320/375)))+"px"}}/>
+              justifyContent:"center",overflow:"hidden",minHeight:0,padding:"4px 0"}}>
+              <div style={{
+                boxShadow:"0 8px 32px rgba(0,0,0,.12)",
+                overflow:"hidden",
+                transformOrigin:"top center",
+                transform:"scale("+Math.min(1,300/375)+")",
+                marginBottom:-(390*(1-Math.min(1,300/375)))+"px",
+              }}>
+                <CardPreview data={data}/>
               </div>
             </div>
 
@@ -646,19 +786,29 @@ function SetupForm(props) {
       </div>
 
       {LAB("5 · Instead I bought")}
-      <div style={{display:"flex",flexDirection:"column",gap:3}}>
-        {COMPARISONS.map(function(c){
+      <div style={{display:"flex",flexWrap:"wrap",gap:6,alignItems:"flex-start"}}>
+        {COMPARISONS.map(function(c,i){
+          var active=c.id===compId;
+          // Alternate sizes for mosaic feel — odd ones wider
+          var wide=i%3===0;
           return(
             <button key={c.id} onClick={function(){setCompId(c.id);}}
-              style={{padding:"9px 12px",fontSize:12,fontWeight:c.id===compId?700:500,
-                background:c.id===compId?G.black:"#f4f4f4",
-                color:c.id===compId?G.white:G.black,
-                border:"none",cursor:"pointer",textAlign:"left",
-                borderLeft:"3px solid "+(c.id===compId?G.green:"transparent")}}>
-              {c.label}
-              <span style={{fontSize:10,fontWeight:400,
-                color:c.id===compId?"rgba(255,255,255,.5)":G.muted,
-                marginLeft:8}}>TZS {fmtN(c.price)}</span>
+              style={{
+                padding:wide?"10px 14px":"10px 10px",
+                fontSize:wide?13:11,
+                fontWeight:700,
+                background:active?G.black:"#f4f4f4",
+                color:active?G.white:G.black,
+                border:"2px solid "+(active?G.green:"transparent"),
+                cursor:"pointer",
+                display:"flex",flexDirection:"column",
+                alignItems:"center",gap:3,
+                minWidth:wide?90:68,
+                flex:wide?"1 1 90px":"0 1 68px",
+              }}>
+              <span style={{fontSize:wide?22:18,lineHeight:1}}>{c.icon}</span>
+              <span style={{fontSize:9,fontWeight:600,letterSpacing:".03em",
+                textAlign:"center",lineHeight:1.2,whiteSpace:"nowrap"}}>{c.label}</span>
             </button>
           );
         })}
