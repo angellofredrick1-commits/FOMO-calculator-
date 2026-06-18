@@ -185,29 +185,12 @@ var G = {
 
 // Fallback stock list (used before API loads or if API fails)
 // Sourced from GET /api/v1/market/prices — active stocks only
+// Locked to 4 banks with 8 years of real verified price data (African Markets)
 var DSE_STOCKS = [
-  {symbol:"AFRIPRISE",    name:"Afriprise",                  sector:"Finance"},
-  {symbol:"CRDB",         name:"CRDB Bank",                  sector:"Banking"},
-  {symbol:"DCB",          name:"DCB Commercial Bank",        sector:"Banking"},
-  {symbol:"DSE",          name:"Dar es Salaam Stock Exchange",sector:"Finance"},
-  {symbol:"IEACLC-ETF",  name:"IEACLC ETF",                 sector:"ETF"},
-  {symbol:"KCB",          name:"KCB Group",                  sector:"Banking"},
-  {symbol:"MBP",          name:"MBP",                        sector:"Finance"},
-  {symbol:"MCB",          name:"Maendeleo Commercial Bank",  sector:"Banking"},
-  {symbol:"MKCB",         name:"Mkombozi Commercial Bank",   sector:"Banking"},
-  {symbol:"MUCOBA",       name:"Mufindi Community Bank",     sector:"Banking"},
-  {symbol:"NICO",         name:"NICO Holdings",              sector:"Insurance"},
-  {symbol:"NMB",          name:"NMB Bank",                   sector:"Banking"},
-  {symbol:"PAL",          name:"PAL",                        sector:"Finance"},
-  {symbol:"SWIS",         name:"Swissport Tanzania",         sector:"Aviation"},
-  {symbol:"TBL",          name:"Tanzania Breweries",         sector:"Consumer"},
-  {symbol:"TCC",          name:"Tanzania Cigarette Co.",     sector:"Consumer"},
-  {symbol:"TCCL",         name:"TCCL",                       sector:"Consumer"},
-  {symbol:"TOL",          name:"TOL Gases",                  sector:"Industrial"},
-  {symbol:"TPCC",         name:"Tanzania Portland Cement",   sector:"Industrial"},
-  {symbol:"TTP",          name:"TTP",                        sector:"Finance"},
-  {symbol:"VERTEX-ETF",   name:"Vertex ETF",                 sector:"ETF"},
-  {symbol:"VODA",         name:"Vodacom Tanzania",           sector:"Telecom"},
+  {symbol:"CRDB", name:"CRDB Bank",               sector:"Banking"},
+  {symbol:"NMB",  name:"NMB Bank",                sector:"Banking"},
+  {symbol:"MKCB", name:"Mkombozi Commercial Bank", sector:"Banking"},
+  {symbol:"DCB",  name:"DCB Commercial Bank",      sector:"Banking"},
 ];
 
 var COMPARISONS = [
@@ -906,15 +889,10 @@ export default function App() {
   var [stocks,     setStocks]     = useState(DSE_STOCKS);
   var [livePrice,  setLivePrice]  = useState(null);
 
-  // Load live stock list from API on mount
+  // Fetch live price for default ticker on mount
   useEffect(function() {
-    fetchAllStocks().then(function(data) {
-      if (data && data.length > 0) {
-        setStocks(data);
-        // Set live price for default ticker
-        var current = data.find(function(s) { return s.symbol === "CRDB"; });
-        if (current) setLivePrice(current);
-      }
+    fetchLivePrice("CRDB").then(function(data) {
+      if (data && data.price) setLivePrice(data);
     });
   }, []);
 
