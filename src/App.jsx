@@ -123,15 +123,6 @@ function buildCardHTML(d) {
   var compItems=Math.floor(d.gain/d.comparison.price);
   var shareUrl="https://sokoview.netlify.app";
 
-  // Minimal sparkline
-  var W=375,H=45;
-  var vals=d.monthly.map(function(p){return p.price;});
-  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
-  var pts=d.monthly.map(function(p,i){
-    var x=(i/(d.monthly.length-1))*W;
-    var y=H-((p.price-mn)/(mx-mn||1))*(H-8)-4;
-    return x.toFixed(1)+","+y.toFixed(1);
-  }).join(" ");
 
   var css=""
     +"*{margin:0;padding:0;box-sizing:border-box}"
@@ -154,7 +145,6 @@ function buildCardHTML(d) {
     +".pills{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}"
     +".pg{background:#22c55e;color:#052e16;font-size:9px;font-weight:700;padding:3px 8px}"
     +".pn{background:#f4f4f4;color:#0a0a0a;font-size:9px;font-weight:600;padding:3px 8px}"
-    +".spk{margin:0 -24px;margin-bottom:0}.spk-lbl{display:flex;justify-content:space-between;font-size:8px;font-weight:600;color:rgba(10,10,10,.3);padding:3px 24px 10px;letter-spacing:.05em;text-transform:uppercase}"
     +".spk svg{display:block}"
     +".cta{font-size:8px;color:rgba(10,10,10,.35);margin-top:4px;font-weight:500}"
     +".cta span{color:#22c55e;font-weight:700}"
@@ -179,17 +169,6 @@ function buildCardHTML(d) {
     +"<div class='pg'>"+sign+d.returnPct.toFixed(0)+"%</div>"
     +"<div class='pn'>"+mult+"\xd7 the money</div>"
     +"<div class='pn'>"+fmtN(d.shares)+" shares</div>"
-    +"</div>"
-    +"<div class='spk'>"
-    +"<svg viewBox='0 0 "+W+" "+H+"' width='"+W+"' height='"+H+"' preserveAspectRatio='none'>"
-    +"<defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'>"
-    +"<stop offset='0%' stop-color='#22c55e' stop-opacity='.15'/>"
-    +"<stop offset='100%' stop-color='#22c55e' stop-opacity='0'/>"
-    +"</linearGradient></defs>"
-    +"<path d='M"+pts.replace(/ /g," L")+" L"+W+","+H+" L0,"+H+" Z' fill='url(#g)'/>"
-    +"<polyline points='"+pts+"' fill='none' stroke='#22c55e' stroke-width='1.5' stroke-linejoin='round' stroke-linecap='round'/>"
-    +"</svg>"
-    +"<div class='spk-lbl'><span>"+yr+"</span><span>Jun 2026</span></div>"
     +"</div>"
     +"<div class='cta'>Try yours at <span>"+shareUrl+"</span> \u00b7 Past \u2260 future. Not advice.</div>"
     +"</div>";
