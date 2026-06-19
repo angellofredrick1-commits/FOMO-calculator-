@@ -136,8 +136,8 @@ function buildCardHTML(d) {
   var css=""
     +"*{margin:0;padding:0;box-sizing:border-box}"
     +"body{font-family:'Sora',system-ui,sans-serif;background:#fff;width:375px}"
-    +".card{width:375px;background:#fff;padding:28px 24px 20px}"
-    +".top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}"
+    +".card{width:375px;background:#fff;padding:20px 24px 12px}"
+    +".top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}"
     +".logo{display:flex;align-items:center;gap:6px}"
     +".icon{width:22px;height:22px;background:#0a0a0a;border-radius:5px;display:flex;align-items:flex-end;gap:2px;padding:3px 4px}"
     +".b1{width:2px;height:4px;background:#22c55e;border-radius:1px}"
@@ -145,17 +145,17 @@ function buildCardHTML(d) {
     +".b3{width:2px;height:9px;background:#22c55e;border-radius:1px}"
     +".wm{font-size:12px;font-weight:800;color:#0a0a0a;letter-spacing:-.3px}"
     +".badge{font-size:8px;font-weight:700;letter-spacing:.09em;color:#15803d;border:1.5px solid #22c55e;padding:3px 8px;text-transform:uppercase}"
-    +".story{font-size:13px;color:#0a0a0a;line-height:1.65;margin-bottom:16px}"
+    +".story{font-size:11px;color:#0a0a0a;line-height:1.55;margin-bottom:10px}"
     +".story strong{font-weight:800}"
     +".story .grn{color:#22c55e;font-weight:800}"
-    +".value{font-size:44px;font-weight:800;color:#0a0a0a;letter-spacing:-2px;line-height:1;margin-bottom:8px}"
+    +".value{font-size:32px;font-weight:800;color:#0a0a0a;letter-spacing:-1.5px;line-height:1;margin-bottom:6px}"
     +".value em{color:#22c55e;font-style:normal}"
-    +".pills{display:flex;gap:5px;margin-bottom:14px}"
-    +".pg{background:#22c55e;color:#052e16;font-size:10px;font-weight:700;padding:4px 10px}"
-    +".pn{background:#f4f4f4;color:#0a0a0a;font-size:10px;font-weight:600;padding:4px 10px}"
-    +".spk{margin:0 -24px;margin-bottom:2px}"
+    +".pills{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}"
+    +".pg{background:#22c55e;color:#052e16;font-size:9px;font-weight:700;padding:3px 8px}"
+    +".pn{background:#f4f4f4;color:#0a0a0a;font-size:9px;font-weight:600;padding:3px 8px}"
+    +".spk{margin:0 -24px;margin-bottom:0}"
     +".spk svg{display:block}"
-    +".cta{font-size:10px;color:rgba(10,10,10,.35);margin-top:8px;font-weight:500}"
+    +".cta{font-size:8px;color:rgba(10,10,10,.35);margin-top:4px;font-weight:500}"
     +".cta span{color:#22c55e;font-weight:700}"
     +".stripe{height:3px;background:#22c55e;margin:0 -24px}";
 
@@ -167,7 +167,7 @@ function buildCardHTML(d) {
     +"<div class='badge'>"+(d.gain>=0?"Certified FOMO":"No Regrets")+"</div>"
     +"</div>"
     +"<div class='story'>"
-    +"I spent <strong>TZS "+fmtN(d.invested)+"</strong> on a <strong>"+d.comparison.label.toLowerCase()+"</strong> in <strong>"+mon+" "+yr+"</strong>.<br>"
+    +"I spent <strong>TZS "+fmtN(d.amount)+"</strong> on a <strong>"+d.comparison.label.toLowerCase()+"</strong> in <strong>"+mon+" "+yr+"</strong>.<br>"
     +"In <strong>"+d.stock.name+"</strong> it\u2019d be <span class='grn'>TZS "+fmtN(d.currentValue)+"</span> today "
     +"(<strong>"+sign+d.returnPct.toFixed(0)+"%</strong>)"
     +(compItems>0?", enough to buy about <strong>"+compItems+" "+d.comparison.label.toLowerCase()+"s</strong>":"")
@@ -482,7 +482,7 @@ function StoryPlayer(props) {
     });
   }
 
-  var shareText = "I spent TZS "+fmtN(data.invested)+" on a "+data.comparison.label.toLowerCase()
+  var shareText = "I spent TZS "+fmtN(data.amount)+" on a "+data.comparison.label.toLowerCase()
     +" in "+mon+" "+yr+". In "+data.stock.name+" it\u2019d be TZS "+fmtN(data.currentValue)
     +" today ("+sign+data.returnPct.toFixed(0)+"%)"
     +(compItems>0?", about "+compItems+" "+data.comparison.label.toLowerCase()+"s":"")
