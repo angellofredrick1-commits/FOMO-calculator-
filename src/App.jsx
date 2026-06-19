@@ -124,7 +124,7 @@ function buildCardHTML(d) {
   var shareUrl="https://sokoview.netlify.app";
 
   // Minimal sparkline
-  var W=375,H=60;
+  var W=375,H=45;
   var vals=d.monthly.map(function(p){return p.price;});
   var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
   var pts=d.monthly.map(function(p,i){
@@ -136,7 +136,8 @@ function buildCardHTML(d) {
   var css=""
     +"*{margin:0;padding:0;box-sizing:border-box}"
     +"body{font-family:'Sora',system-ui,sans-serif;background:#fff;width:375px}"
-    +".card{width:375px;background:#fff;padding:14px 24px 0}"
+    +"html,body{width:375px;max-width:375px;overflow:hidden}"
+    +".card{width:375px;max-width:375px;background:#fff;padding:14px 24px 0;overflow:hidden}"
     +".top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}"
     +".logo{display:flex;align-items:center;gap:6px}"
     +".icon{width:22px;height:22px;background:#0a0a0a;border-radius:5px;display:flex;align-items:flex-end;gap:2px;padding:3px 4px}"
@@ -442,7 +443,7 @@ function StoryPlayer(props) {
     }
     // Create a temporary off-screen container at full size
     var container=document.createElement("div");
-    container.style.cssText="position:fixed;left:-9999px;top:0;width:375px;background:#fff;z-index:-1;";
+    container.style.cssText="position:fixed;left:-9999px;top:0;width:375px;max-width:375px;overflow:hidden;background:#fff;z-index:-1;font-family:'Sora',system-ui,sans-serif;";
     document.body.appendChild(container);
 
     // Render card HTML into container
@@ -456,6 +457,7 @@ function StoryPlayer(props) {
         allowTaint:true,
         backgroundColor:"#ffffff",
         width:375,
+        windowWidth:375,
         logging:false,
       }).then(function(canvas){
         document.body.removeChild(container);
