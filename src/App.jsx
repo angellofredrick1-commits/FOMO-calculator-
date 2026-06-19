@@ -145,7 +145,6 @@ function buildCardHTML(d) {
     +".pills{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}"
     +".pg{background:#22c55e;color:#052e16;font-size:9px;font-weight:700;padding:3px 8px}"
     +".pn{background:#f4f4f4;color:#0a0a0a;font-size:9px;font-weight:600;padding:3px 8px}"
-    +".spk svg{display:block}"
     +".cta{font-size:8px;color:rgba(10,10,10,.35);margin-top:4px;font-weight:500}"
     +".cta span{color:#22c55e;font-weight:700}"
     +".stripe{height:3px;background:#22c55e;margin:0 -24px}";
